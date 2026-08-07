@@ -13,6 +13,7 @@ class PolicyEngine(BaseAgent):
         })
         return case
 import math
+import logging
 
 from app.agents.base_agent import BaseAgent
 
@@ -176,7 +177,7 @@ class PolicyEngine(BaseAgent):
         return policy
 
     def execute(self, case):
-        print("Policy Evaluation")
+        logging.getLogger(__name__).info("Policy Evaluation")
 
         findings = case.findings
         demo = case.metadata.get("demo", {})

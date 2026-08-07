@@ -13,12 +13,12 @@ class GitHubPullRequestClient:
 
     @classmethod
     def from_environment(cls):
-        token = os.getenv("GITHUB_TOKEN")
+        token = os.getenv("SAVEMIT_GITHUB_TOKEN")
         owner = os.getenv("SAVEMIT_GITHUB_OWNER")
         repository = os.getenv("SAVEMIT_GITHUB_REPOSITORY")
 
         if not token:
-            raise RuntimeError("GITHUB_TOKEN is required to create a pull request.")
+            raise RuntimeError("SAVEMIT_GITHUB_TOKEN is required to create a pull request.")
         if not owner or not repository:
             raise RuntimeError(
                 "SAVEMIT_GITHUB_OWNER and SAVEMIT_GITHUB_REPOSITORY are required."

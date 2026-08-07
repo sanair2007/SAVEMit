@@ -1,4 +1,5 @@
 import httpx
+import logging
 
 from app.agents.base_agent import BaseAgent
 
@@ -90,7 +91,7 @@ class ThreatIntelAgent(BaseAgent):
         return list(grouped_findings.values())
 
     def execute(self, case):
-        print("Threat Intelligence")
+        logging.getLogger(__name__).info("Threat Intelligence")
 
         sbom = case.metadata.get("sbom")
         if not sbom:

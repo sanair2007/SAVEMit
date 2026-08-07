@@ -1,6 +1,16 @@
 # SAVEMit
 Semi-Autonomous Vulnerability Evaluation and Mitigation
 
+## Antigravity GitHub plugin
+
+This repository is also a self-contained Antigravity plugin. Install it from the repository root with Antigravity's plugin command, then the plugin creates its own local Python environment on first use. It requires Python 3.10+, Syft, Docker Desktop, and network access to OSV.
+
+The plugin exposes `savemit-security` MCP tools and never edits the target repository during validation.
+
+## MCP server (local development)
+
+SAVEMit can be used as a local stdio MCP server by Antigravity and other MCP-capable coding agents. Setup and test instructions are in [plugins/antigravity/README.md](plugins/antigravity/README.md).
+
 ## Demo repositories
 
 Run the backend and select a demo with `/test?repository=<name>`.

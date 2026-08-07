@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 
 from app.agents.base_agent import BaseAgent
@@ -6,7 +7,7 @@ from app.agents.base_agent import BaseAgent
 class RepositoryScanner(BaseAgent):
 
     def execute(self, case):
-        print("Repository Scanner")
+        logging.getLogger(__name__).info("Repository Scanner")
 
         repository_path = Path(case.repository).expanduser().resolve()
         if not repository_path.is_dir():

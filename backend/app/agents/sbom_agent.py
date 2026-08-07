@@ -1,4 +1,5 @@
 import json
+import logging
 import shutil
 import subprocess
 from pathlib import Path
@@ -30,7 +31,7 @@ class SBOMAgent(BaseAgent):
         return components
 
     def execute(self, case):
-        print("SBOM Agent")
+        logging.getLogger(__name__).info("SBOM Agent")
 
         repository_path = case.metadata.get("repository_path")
         if not repository_path:

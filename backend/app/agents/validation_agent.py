@@ -1,6 +1,7 @@
 from app.agents.base_agent import BaseAgent
 
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -131,7 +132,7 @@ class ValidationAgent(BaseAgent):
         return case
 
     def execute(self, case):
-        print("Validation")
+        logging.getLogger(__name__).info("Validation")
 
         repository_path = case.metadata.get("repository_path")
         remediation_plan = case.metadata.get("remediation_plan", [])

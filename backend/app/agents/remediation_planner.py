@@ -13,6 +13,7 @@ class RemediationPlanner(BaseAgent):
         })
         return case
 import re
+import logging
 
 from app.agents.base_agent import BaseAgent
 
@@ -44,7 +45,7 @@ class RemediationPlanner(BaseAgent):
         return max(version_pairs, key=lambda pair: pair[0])[1]
 
     def execute(self, case):
-        print("Remediation Planning")
+        logging.getLogger(__name__).info("Remediation Planning")
 
         plans = {}
         for finding in case.findings:

@@ -1,9 +1,10 @@
 from app.agents.base_agent import BaseAgent
+import logging
 
 
 class ReportGenerator(BaseAgent):
     def execute(self, case):
-        print("Report Generation")
+        logging.getLogger(__name__).info("Report Generation")
 
         case.stage = "Report Generation"
         if case.status in {"PENDING", "COMPLETED"}:

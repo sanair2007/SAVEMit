@@ -1,4 +1,5 @@
 import re
+import logging
 from pathlib import Path
 
 from app.agents.base_agent import BaseAgent
@@ -63,7 +64,7 @@ class ReachabilityAgent(BaseAgent):
         return imports
 
     def execute(self, case):
-        print("Reachability Analysis")
+        logging.getLogger(__name__).info("Reachability Analysis")
 
         repository_path = case.metadata.get("repository_path")
         if not repository_path:

@@ -1,4 +1,6 @@
 .venv/
+.savemit-plugin-venv/
+.agents/
 __pycache__/
 *.py[cod]
 *.pyo
