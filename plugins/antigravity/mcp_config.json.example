@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "savemit-security": {
-      "command": "C:\\absolute\\path\\to\\SAVEMit\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "app.mcp.server"],
-      "cwd": "C:\\absolute\\path\\to\\SAVEMit\\backend"
-    }
-  }
-}

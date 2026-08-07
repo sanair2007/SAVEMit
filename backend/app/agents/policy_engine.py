@@ -1,17 +1,3 @@
-from app.agents.base_agent import BaseAgent
-
-
-class PolicyEngine(BaseAgent):
-    def execute(self, case):
-        print("Policy Evaluation")
-
-        case.stage = "Policy Evaluation"
-        case.history.append({
-            "agent": "Policy Engine",
-            "stage": case.stage,
-            "status": "Completed"
-        })
-        return case
 import math
 import logging
 
