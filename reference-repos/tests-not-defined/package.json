@@ -1,0 +1,6 @@
+{
+  "name": "tests-not-defined-demo",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": { "axios": "0.21.1" }
+}

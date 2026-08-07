@@ -6,7 +6,8 @@ class ReportGenerator(BaseAgent):
         print("Report Generation")
 
         case.stage = "Report Generation"
-        case.status = "COMPLETED"
+        if case.status in {"PENDING", "COMPLETED"}:
+            case.status = "COMPLETED"
         case.history.append({
             "agent": "Report Generator",
             "stage": case.stage,

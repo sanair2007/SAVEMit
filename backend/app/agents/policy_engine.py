@@ -131,32 +131,59 @@ class PolicyEngine(BaseAgent):
             return "MEDIUM"
         return "LOW"
 
+    def _deprioritize(self, priority):
+        priorities = list(self.PRIORITY_ORDER)
+        return priorities[min(priorities.index(priority) + 1, len(priorities) - 1)]
+
     def _evaluate_finding(self, finding):
         severity = finding.get("severity", [])
         cvss_score, vector = self._cvss_v3_score(severity)
 
         if cvss_score is not None:
-            return {
+            policy = {
                 "priority": self._priority_for_score(cvss_score),
                 "cvss_score": cvss_score,
                 "policy_basis": "CVSS v3 base score",
                 "cvss_vector": vector,
             }
+        else:
+            priority, vector = self._cvss_v4_priority(severity)
+            policy = {
+                "priority": priority,
+                "cvss_score": None,
+                "policy_basis": "CVSS v4 exposure-and-impact fallback",
+                "cvss_vector": vector,
+            }
 
-        priority, vector = self._cvss_v4_priority(severity)
-        return {
-            "priority": priority,
-            "cvss_score": None,
-            "policy_basis": "CVSS v4 exposure-and-impact fallback",
-            "cvss_vector": vector,
+        reachable = finding.get("reachability", {}).get("reachable")
+        package_names = {
+            package["package"] for package in finding.get("affected_packages", [])
         }
+        blocked_packages = set(finding.get("demo", {}).get("blocked_packages", []))
+        if not reachable:
+            policy["priority"] = self._deprioritize(policy["priority"])
+        policy["reachability_status"] = (
+            "REACHABLE" if reachable else "REVIEW - no static import found"
+        )
+        policy["recommended_action"] = (
+            "Prioritize remediation; vulnerable package is statically imported."
+            if reachable
+            else "Review before remediation; no static import was found."
+        )
+        policy["blocked"] = bool(package_names & blocked_packages)
+        if policy["blocked"]:
+            policy["recommended_action"] = "Blocked by repository policy; do not create an automated patch."
+        return policy
 
     def execute(self, case):
         print("Policy Evaluation")
 
         findings = case.findings
+        demo = case.metadata.get("demo", {})
         for finding in findings:
+            finding["demo"] = demo
             finding["policy"] = self._evaluate_finding(finding)
+            finding.pop("demo", None)
 
         findings.sort(
             key=lambda finding: (

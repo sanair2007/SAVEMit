@@ -61,6 +61,7 @@ class ThreatIntelAgent(BaseAgent):
                     "severity": advisory.get("severity", []),
                     "advisory_ids": [],
                     "affected_packages": [],
+                    "fixed_versions": [],
                 },
             )
 
@@ -74,6 +75,17 @@ class ThreatIntelAgent(BaseAgent):
             }
             if package not in finding["affected_packages"]:
                 finding["affected_packages"].append(package)
+
+            package_name = package["package"].lower()
+            for affected in advisory.get("affected", []):
+                advisory_package = affected.get("package", {}).get("name", "").lower()
+                if advisory_package != package_name:
+                    continue
+                for affected_range in affected.get("ranges", []):
+                    for event in affected_range.get("events", []):
+                        fixed_version = event.get("fixed")
+                        if fixed_version and fixed_version not in finding["fixed_versions"]:
+                            finding["fixed_versions"].append(fixed_version)
 
         return list(grouped_findings.values())
 
