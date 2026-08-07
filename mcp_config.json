@@ -1,13 +1,10 @@
 {
   "mcpServers": {
     "savemit-security": {
-      "command": "powershell.exe",
+      "command": "py",
       "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${extensionPath}\\scripts\\run_savemit_mcp.ps1"
+        "-3",
+        "${extensionPath}\\scripts\\run_savemit_mcp.py"
       ]
     }
   }

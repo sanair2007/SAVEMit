@@ -17,4 +17,4 @@ savemit-mcp = "app.mcp.server:main"
 
 [tool.setuptools]
 package-dir = {"" = "backend"}
-packages = ["app", "app.agents", "app.coordinator", "app.mcp", "app.models", "app.services"]
+packages = ["app", "app.agents", "app.coordinator", "app.mcp", "app.models"]

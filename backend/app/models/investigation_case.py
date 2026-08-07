@@ -11,5 +11,3 @@ class InvestigationCase:
     findings: list = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
     history: list = field(default_factory=list)
-
-    recommendation: str | None = None

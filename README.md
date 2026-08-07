@@ -3,17 +3,13 @@ Semi-Autonomous Vulnerability Evaluation and Mitigation
 
 ## Antigravity GitHub plugin
 
-This repository is also a self-contained Antigravity plugin. Install it from the repository root with Antigravity's plugin command, then the plugin creates its own local Python environment on first use. It requires Python 3.10+, Syft, Docker Desktop, and network access to OSV.
+This repository is also a self-contained Antigravity plugin. Install it from the repository root with Antigravity's plugin command, then the Python bootstrap creates its own local environment on first use. On Windows it uses the `py -3` launcher. It requires Python 3.10+, Syft, Docker Desktop, and network access to OSV.
 
 The plugin exposes `savemit-security` MCP tools and never edits the target repository during validation.
 
-## MCP server (local development)
-
-SAVEMit can be used as a local stdio MCP server by Antigravity and other MCP-capable coding agents. Setup and test instructions are in [plugins/antigravity/README.md](plugins/antigravity/README.md).
-
 ## Demo repositories
 
-Run the backend and select a demo with `/test?repository=<name>`.
+Use the `savemit-security` MCP tools to scan these local repositories by passing their absolute paths to `start_investigation`.
 
 | Repository | Expected outcome |
 | --- | --- |
@@ -26,7 +22,5 @@ Run the backend and select a demo with `/test?repository=<name>`.
 | `policy-blocked-upgrade` | Repository policy forbids the upgrade, producing `POLICY_BLOCKED`. |
 | `no-fix-available` | No approved fixed version is available, producing `MANUAL_REMEDIATION_REQUIRED`. |
 | `docker-unavailable` | A simulated validation-host failure produces `VALIDATION_INFRASTRUCTURE_FAILED`. |
-
-Available names are also exposed at `/demo-repositories`.
 
 The `no-fix-available`, `transitive-dependency`, and `docker-unavailable` repositories use `.savemit-demo.json` solely to make their demonstration outcome deterministic. Normal repositories do not use this file.
