@@ -146,7 +146,9 @@ class PolicyEngine(BaseAgent):
         package_names = {
             package["package"] for package in finding.get("affected_packages", [])
         }
-        blocked_packages = set(finding.get("demo", {}).get("blocked_packages", []))
+        policy_config = finding.get("policy_manifest", {})
+        blocked_packages = set(policy_config.get("blocked_packages", []))
+        blocked_packages.update(finding.get("demo", {}).get("blocked_packages", []))
         if not reachable:
             policy["priority"] = self._deprioritize(policy["priority"])
         policy["reachability_status"] = (
@@ -158,8 +160,18 @@ class PolicyEngine(BaseAgent):
             else "Review before remediation; no static import was found."
         )
         policy["blocked"] = bool(package_names & blocked_packages)
+        minimum_priority = policy_config.get("minimum_priority", "LOW")
+        policy["below_minimum_priority"] = (
+            self.PRIORITY_ORDER[policy["priority"]]
+            > self.PRIORITY_ORDER[minimum_priority]
+        )
         if policy["blocked"]:
             policy["recommended_action"] = "Blocked by repository policy; do not create an automated patch."
+        elif policy["below_minimum_priority"]:
+            policy["recommended_action"] = (
+                f"Below the repository's {minimum_priority} remediation threshold; "
+                "do not create an automated patch."
+            )
         return policy
 
     def execute(self, case):
@@ -167,10 +179,13 @@ class PolicyEngine(BaseAgent):
 
         findings = case.findings
         demo = case.metadata.get("demo", {})
+        policy_manifest = case.metadata.get("policy_manifest", {})
         for finding in findings:
             finding["demo"] = demo
+            finding["policy_manifest"] = policy_manifest
             finding["policy"] = self._evaluate_finding(finding)
             finding.pop("demo", None)
+            finding.pop("policy_manifest", None)
 
         findings.sort(
             key=lambda finding: (
@@ -188,6 +203,7 @@ class PolicyEngine(BaseAgent):
         }
         case.metadata["policy"] = {
             "summary": summary,
+            "manifest": policy_manifest,
             "prioritized_findings": findings,
         }
         case.metadata["threat_intel"]["vulnerabilities"] = findings

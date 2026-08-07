@@ -30,6 +30,11 @@ class RemediationPlanner(BaseAgent):
             return None
         return max(version_pairs, key=lambda pair: pair[0])[1]
 
+    def _is_major_upgrade(self, current_version, target_version):
+        current_key = self._version_key(current_version)
+        target_key = self._version_key(target_version)
+        return bool(current_key and target_key and current_key[0] != target_key[0])
+
     def execute(self, case):
         logging.getLogger(__name__).info("Remediation Planning")
 
@@ -60,12 +65,14 @@ class RemediationPlanner(BaseAgent):
                     plan["highest_priority"] = finding["policy"]["priority"]
 
         demo = case.metadata.get("demo", {})
+        policy_manifest = case.metadata.get("policy_manifest", {})
         no_fix_packages = set(demo.get("no_fix_packages", []))
         transitive_dependencies = demo.get("transitive_dependencies", {})
         remediation_plan = []
         for plan in plans.values():
             blocked = any(
                 finding["policy"].get("blocked")
+                or finding["policy"].get("below_minimum_priority")
                 for finding in case.findings
                 if any(package["package"] == plan["package"] for package in finding["affected_packages"])
             )
@@ -73,6 +80,13 @@ class RemediationPlanner(BaseAgent):
                 None
                 if plan["package"] in no_fix_packages or blocked
                 else self._recommended_version(plan["fixed_versions"])
+            )
+            major_upgrade_blocked = (
+                not policy_manifest.get("allow_major_upgrades", True)
+                and plan["recommended_version"]
+                and self._is_major_upgrade(
+                    plan["current_version"], plan["recommended_version"]
+                )
             )
             if plan["package"] in transitive_dependencies:
                 plan["outcome"] = "MANUAL_REMEDIATION_REQUIRED"
@@ -85,6 +99,10 @@ class RemediationPlanner(BaseAgent):
             elif blocked:
                 plan["outcome"] = "POLICY_BLOCKED"
                 plan["action"] = "Repository policy prohibits this automated upgrade."
+            elif major_upgrade_blocked:
+                plan["outcome"] = "POLICY_BLOCKED"
+                plan["recommended_version"] = None
+                plan["action"] = "Repository policy prohibits automatic major-version upgrades."
             elif plan["package"] in no_fix_packages or not plan["recommended_version"]:
                 plan["outcome"] = "MANUAL_REMEDIATION_REQUIRED"
                 plan["action"] = "No approved fixed version is available; review the advisory manually."

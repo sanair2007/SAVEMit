@@ -1,5 +1,6 @@
 .venv/
 .savemit-plugin-venv/
+data/validation/
 .agents/
 __pycache__/
 *.py[cod]

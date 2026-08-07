@@ -1,33 +1,15 @@
 # SAVEMit for GitHub Copilot
 
-GitHub Copilot connects to SAVEMit as a local MCP server rather than through a plugin manifest. Install the SAVEMit command once, then choose the configuration file that matches your Copilot client.
+GitHub Copilot uses SAVEMit as a local MCP server, not as a GitHub App or repository-writing plugin. The complete requirements, installation, removal, policy workflow, and troubleshooting instructions are in the [SAVEMit getting-started guide](../../docs/getting-started.md).
 
-## Prerequisites
+Quick setup:
 
-Install SAVEMit from this repository and make sure its Python scripts directory is on `PATH`:
+1. Install the core: `py -3 -m pip install "git+https://github.com/sanair2007/SAVEMit.git"`.
+2. Copy `vscode-mcp.json` to a target project's `.vscode/mcp.json`, or copy `copilot-cli-mcp.json` to its `.mcp.json`.
+3. Start the configured server and use Copilot in Agent mode.
 
-```powershell
-py -3 -m pip install "git+https://github.com/sanair2007/SAVEMit.git"
-```
-
-SAVEMit also requires Syft, Docker Desktop, and network access to OSV. Docker Desktop must be running before an investigation reaches validation.
-
-## Copilot in VS Code
-
-Copy `vscode-mcp.json` to `.vscode/mcp.json` in the repository you want Copilot to analyse. Open that file and start the `savemit-security` server with the VS Code CodeLens control. Then use Copilot Chat in Agent mode.
-
-## Copilot CLI
-
-Copy `copilot-cli-mcp.json` to `.mcp.json` in the repository you want Copilot to analyse, then start Copilot CLI from that repository. Confirm folder trust when prompted.
-
-Alternatively, register the server for your user account:
-
-```powershell
-copilot mcp add savemit-security -- savemit-mcp
-```
-
-## Suggested prompt
+Suggested prompt:
 
 ```text
-Use SAVEMit to investigate dependency vulnerabilities in this repository. Wait for validation, then summarize only remediation options that are safe for developer review. Do not edit or merge files.
+Use SAVEMit to investigate dependency vulnerabilities in this repository. Wait for it to finish, call get_policy_decision before recommending any upgrade, and treat POLICY_BLOCKED and REVIEW_REQUIRED as hard review gates. Only summarize changes that are policy-permitted and whose validation passed. Do not edit, commit, or merge files.
 ```

@@ -73,6 +73,7 @@ def _case_summary(case):
         "stage": case.stage,
         "vulnerability_count": threat_intel.get("vulnerability_count", 0),
         "priority_summary": case.metadata.get("policy", {}).get("summary", {}),
+        "policy_manifest": case.metadata.get("policy_manifest", {}),
         "remediation_plan": case.metadata.get("remediation_plan", []),
         "validation": case.metadata.get("validation", {}),
         "error": case.metadata.get("error"),
@@ -81,6 +82,74 @@ def _case_summary(case):
 
 def _result(case):
     return json.dumps(_case_summary(case), indent=2)
+
+
+def _policy_decision(case):
+    """Build a small, model-oriented policy gate from pipeline evidence."""
+    if case.status in {"QUEUED", "RUNNING", "PENDING"}:
+        return {
+            "case_id": case.id,
+            "policy_status": "PENDING",
+            "requires_human_review": True,
+            "allowed_actions": [],
+            "blocked_actions": [],
+            "policy_manifest": case.metadata.get("policy_manifest", {}),
+            "message": "Wait for the investigation to finish before using policy evidence.",
+        }
+
+    plans = case.metadata.get("remediation_plan", [])
+    if not plans:
+        return {
+            "case_id": case.id,
+            "policy_status": "NO_REMEDIATION",
+            "requires_human_review": False,
+            "allowed_actions": [],
+            "blocked_actions": [],
+            "policy_summary": case.metadata.get("policy", {}).get("summary", {}),
+            "policy_manifest": case.metadata.get("policy_manifest", {}),
+            "message": "No dependency upgrade was planned for this investigation.",
+        }
+
+    allowed_actions = []
+    blocked_actions = []
+    review_actions = []
+    for plan in plans:
+        action = {
+            "package": plan.get("package"),
+            "current_version": plan.get("current_version"),
+            "recommended_version": plan.get("recommended_version"),
+            "priority": plan.get("highest_priority"),
+            "outcome": plan.get("outcome"),
+            "reason": plan.get("action"),
+        }
+        if plan.get("outcome") == "READY_FOR_VALIDATION":
+            allowed_actions.append(action)
+        elif plan.get("outcome") == "POLICY_BLOCKED":
+            blocked_actions.append(action)
+        else:
+            review_actions.append(action)
+
+    if blocked_actions:
+        policy_status = "POLICY_BLOCKED"
+        message = "Repository policy blocks one or more automated upgrades. Do not propose a patch for those packages."
+    elif review_actions:
+        policy_status = "REVIEW_REQUIRED"
+        message = "At least one remediation needs developer review before it can be proposed."
+    else:
+        policy_status = "APPROVED_FOR_REVIEW"
+        message = "The policy allows these upgrades to be presented for developer review; validation remains a separate gate."
+
+    return {
+        "case_id": case.id,
+        "policy_status": policy_status,
+        "requires_human_review": bool(blocked_actions or review_actions),
+        "allowed_actions": allowed_actions,
+        "blocked_actions": blocked_actions,
+        "review_actions": review_actions,
+        "policy_summary": case.metadata.get("policy", {}).get("summary", {}),
+        "policy_manifest": case.metadata.get("policy_manifest", {}),
+        "message": message,
+    }
 
 
 @mcp.tool()
@@ -127,6 +196,19 @@ def get_findings(case_id: str) -> str:
 
 
 @mcp.tool()
+def get_policy_decision(case_id: str) -> str:
+    """Return the authoritative policy gate before recommending a dependency upgrade.
+
+    Call this after the investigation finishes. Do not propose an automated
+    patch when policy_status is POLICY_BLOCKED or REVIEW_REQUIRED.
+    """
+    case = store.get(case_id)
+    if case is None:
+        raise ValueError("Unknown case_id. Start an investigation first.")
+    return json.dumps(_policy_decision(case), indent=2)
+
+
+@mcp.tool()
 def get_validation_log(case_id: str) -> str:
     """Return validation status and failure context for a case; use this before suggesting code changes."""
     case = store.get(case_id)
@@ -139,6 +221,18 @@ def get_validation_log(case_id: str) -> str:
         "error": case.metadata.get("error"),
         "history": case.history,
     }, indent=2)
+
+
+@mcp.tool()
+def get_report(case_id: str) -> str:
+    """Return the final structured SAVEMit report after an investigation completes."""
+    case = store.get(case_id)
+    if case is None:
+        raise ValueError("Unknown case_id. Start an investigation first.")
+    report = case.metadata.get("report")
+    if report is None:
+        raise ValueError("Report is not ready. Wait for the investigation to complete.")
+    return json.dumps(report, indent=2)
 
 
 @mcp.resource("savemit://cases/{case_id}/summary")

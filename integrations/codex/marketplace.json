@@ -1,0 +1,20 @@
+{
+  "name": "savemit",
+  "interface": {
+    "displayName": "SAVEMit"
+  },
+  "plugins": [
+    {
+      "name": "savemit-security",
+      "source": {
+        "source": "local",
+        "path": "./plugins/savemit-security"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
