@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "savemit-security": {
+      "type": "local",
+      "command": "savemit-mcp",
+      "args": [],
+      "tools": ["*"]
+    }
+  }
+}

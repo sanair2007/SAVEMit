@@ -1,0 +1,25 @@
+{
+  "name": "savemit-security",
+  "version": "0.1.0",
+  "description": "Validated npm dependency-vulnerability investigation for Codex.",
+  "author": {
+    "name": "SAVEMit"
+  },
+  "repository": "https://github.com/sanair2007/SAVEMit",
+  "license": "MIT",
+  "keywords": ["security", "npm", "vulnerabilities", "mcp"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "SAVEMit Security",
+    "shortDescription": "Validate npm vulnerability remediations before proposing changes.",
+    "longDescription": "SAVEMit scans a local Node/npm repository, investigates vulnerable dependencies, and validates proposed upgrades in an isolated Docker container. It never edits or merges the target repository.",
+    "developerName": "SAVEMit",
+    "category": "Developer Tools",
+    "capabilities": ["MCP tools", "Read-only repository analysis"],
+    "defaultPrompt": [
+      "Use SAVEMit to investigate npm dependency vulnerabilities in this repository.",
+      "Run SAVEMit and summarize the validated remediation options."
+    ]
+  }
+}

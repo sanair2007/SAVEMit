@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "savemit-security": {
+      "command": "savemit-mcp",
+      "args": []
+    }
+  }
+}

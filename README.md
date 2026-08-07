@@ -7,6 +7,22 @@ This repository is also a self-contained Antigravity plugin. Install it from the
 
 The plugin exposes `savemit-security` MCP tools and never edits the target repository during validation.
 
+## Codex and GitHub Copilot
+
+SAVEMit exposes the same local stdio MCP server to other coding agents:
+
+- **Codex:** [the Codex plugin package](integrations/codex/savemit-security/) provides the SAVEMit workflow skill and MCP configuration. Install the core command first:
+
+  ```powershell
+  py -3 -m pip install "git+https://github.com/sanair2007/SAVEMit.git"
+  ```
+
+  Then add the local plugin directory to your Codex plugin setup. It starts the installed `savemit-mcp` command.
+
+- **GitHub Copilot:** [the Copilot integration](integrations/github-copilot/) contains ready-to-copy MCP configuration for VS Code and Copilot CLI, plus exact setup instructions. Copilot treats SAVEMit as a local MCP server, not a GitHub App or a repository-writing integration.
+
+All integrations are read-only with respect to the repository being analysed: they investigate, plan, and validate, but never create commits, branches, pull requests, or merges.
+
 ## Demo repositories
 
 Use the `savemit-security` MCP tools to scan these local repositories by passing their absolute paths to `start_investigation`.
