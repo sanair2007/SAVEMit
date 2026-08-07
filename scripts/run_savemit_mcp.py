@@ -17,6 +17,7 @@ def run(command):
 def main():
     repository_root = Path(__file__).resolve().parents[1]
     environment_root = repository_root / ".savemit-plugin-venv"
+    installation_marker = environment_root / ".savemit-source-install"
     python = environment_root / (
         "Scripts/python.exe" if os.name == "nt" else "bin/python"
     )
@@ -29,6 +30,7 @@ def main():
                 file=sys.stderr,
             )
             run([sys.executable, "-m", "venv", str(environment_root)])
+        if not installation_marker.is_file():
             run([
                 str(python),
                 "-m",
@@ -36,8 +38,10 @@ def main():
                 "install",
                 "--disable-pip-version-check",
                 "--no-input",
+                "--editable",
                 str(repository_root),
             ])
+            installation_marker.write_text("editable source install\n", encoding="utf-8")
     except subprocess.CalledProcessError as error:
         print(f"SAVEMit setup failed with exit code {error.returncode}.", file=sys.stderr)
         return error.returncode

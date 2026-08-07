@@ -1,12 +1,13 @@
 """Local stdio MCP server that exposes SAVEMit's existing investigation pipeline."""
 
+import asyncio
 import json
 import logging
 import threading
 import uuid
 from pathlib import Path
 
-from fastmcp import FastMCP
+from fastmcp import Context, FastMCP
 
 from app.coordinator.coordinator import InvestigationCoordinator
 from app.models.investigation_case import InvestigationCase
@@ -63,6 +64,8 @@ class InvestigationStore:
 
 store = InvestigationStore()
 
+PROGRESS_HEARTBEAT_SECONDS = 5
+
 
 def _case_summary(case):
     threat_intel = case.metadata.get("threat_intel", {})
@@ -82,6 +85,54 @@ def _case_summary(case):
 
 def _result(case):
     return json.dumps(_case_summary(case), indent=2)
+
+
+async def _report_progress(ctx, progress, message):
+    """Send an optional MCP progress notification without affecting the result."""
+    await ctx.report_progress(progress=progress, total=None, message=message)
+
+
+async def _run_with_progress(case, ctx):
+    """Run each blocking pipeline agent in a worker thread with MCP updates."""
+    coordinator = InvestigationCoordinator()
+    case.status = "RUNNING"
+
+    try:
+        for index, agent in enumerate(coordinator.pipeline, start=1):
+            agent_name = agent.__class__.__name__.replace("Agent", "")
+            progress_base = index * 100000
+            await _report_progress(ctx, progress_base, f"Starting {agent_name}")
+
+            task = asyncio.create_task(asyncio.to_thread(agent.execute, case))
+            heartbeat = 0
+            while not task.done():
+                await asyncio.sleep(PROGRESS_HEARTBEAT_SECONDS)
+                if not task.done():
+                    heartbeat += 1
+                    await _report_progress(
+                        ctx,
+                        progress_base + heartbeat,
+                        f"{agent_name} is still running",
+                    )
+            case = await task
+            await _report_progress(
+                ctx,
+                progress_base + 99999,
+                f"Completed {case.stage}",
+            )
+    except (RuntimeError, ValueError) as error:
+        case.status = "FAILED"
+        case.stage = "Failed"
+        case.metadata["error"] = str(error)
+        case.history.append({
+            "agent": "SAVEMit MCP",
+            "stage": case.stage,
+            "status": "Failed",
+            "error": str(error),
+        })
+        await _report_progress(ctx, 999999, "Investigation failed")
+
+    return case
 
 
 def _policy_decision(case):
@@ -171,6 +222,22 @@ def start_investigation(repository_path: str) -> str:
         "status": case.status,
         "message": "Investigation started. Poll get_investigation with this case_id.",
     })
+
+
+@mcp.tool()
+async def run_investigation(repository_path: str, ctx: Context) -> str:
+    """Run a full investigation with live MCP stage/heartbeat progress updates.
+
+    Use this when the MCP host supports progress notifications and can wait for
+    the final report. For background polling instead, use start_investigation.
+    """
+    path = Path(repository_path).expanduser().resolve()
+    if not path.is_dir():
+        raise ValueError("repository_path must be an existing local directory.")
+
+    case = store.create(path)
+    case = await _run_with_progress(case, ctx)
+    return _result(case)
 
 
 @mcp.tool()

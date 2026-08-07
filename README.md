@@ -39,8 +39,8 @@ Repository scan → SBOM → OSV vulnerability lookup → static reachability
 
 The exposed MCP workflow is:
 
-1. `start_investigation(repository_path)`
-2. Poll `get_investigation(case_id)` until it is no longer `QUEUED` or `RUNNING`.
+1. Use either `run_investigation(repository_path)` for host-visible live stage progress, or `start_investigation(repository_path)` for background execution.
+2. When using `start_investigation`, poll `get_investigation(case_id)` until it is no longer `QUEUED` or `RUNNING`.
 3. Call `get_policy_decision(case_id)` before recommending an upgrade.
 4. Use `get_findings(case_id)` for supporting evidence and `get_validation_log(case_id)` for failed or incomplete validation.
 5. Use `get_report(case_id)` to retrieve the final structured report when the case reaches `Report Generation`.

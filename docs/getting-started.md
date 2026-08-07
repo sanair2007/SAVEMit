@@ -56,9 +56,9 @@ The repository root is an Antigravity plugin. It carries its own MCP configurati
    Use SAVEMit to investigate dependency vulnerabilities in this repository.
    ```
 
-On first use, expect a short one-time setup while Python creates `.savemit-plugin-venv` and installs the SAVEMit package. The MCP server writes setup diagnostics to stderr, never to the MCP protocol stream.
+On first use, expect a short one-time setup while Python creates `.savemit-plugin-venv` and installs the SAVEMit package. The environment uses an editable source install, so a refreshed plugin runs the current plugin files rather than a stale package copy. The MCP server writes setup diagnostics to stderr, never to the MCP protocol stream.
 
-The bundled Antigravity configuration starts `scripts/run_savemit_mcp.py` relative to the installed plugin root. It intentionally does not use VS Code's `${extensionPath}` placeholder, which Antigravity does not expand.
+Antigravity CLI 1.1.11 does not expand plugin-path variables in `mcp_config.json`. To remain compatible, SAVEMit's bundled configuration uses Python to locate its global Antigravity 2.0 installation at `~/.gemini/config/plugins/savemit-security/` and starts the launcher from there. This prevents the active workspace from changing the launcher path.
 
 #### Uninstall Antigravity
 
@@ -198,6 +198,8 @@ Every MCP client should follow this sequence:
 3. Call `get_policy_decision` before discussing an upgrade.
 4. If needed, call `get_findings` for vulnerability evidence and `get_validation_log` for failure context.
 5. Call `get_report` for the final, portable structured result.
+
+Clients that support MCP progress notifications may call `run_investigation` instead. It returns only when the pipeline finishes while reporting its active stage and a five-second heartbeat to the host UI. Not every MCP host renders these updates, so the polling workflow remains supported.
 
 | Policy result | Required agent behavior |
 | --- | --- |

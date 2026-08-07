@@ -12,6 +12,18 @@ Starts a background investigation. The path must be absolute (or resolvable to a
 }
 ```
 
+## `run_investigation`
+
+Runs the same pipeline in the foreground and returns the compact final result. Use it in a client that supports MCP progress notifications and can wait for the operation to finish. SAVEMit sends an update when each stage starts/completes and a heartbeat every five seconds while a slow stage is still running.
+
+```json
+{
+  "repository_path": "C:\\work\\customer-portal"
+}
+```
+
+Progress display is controlled by the MCP host. A host may show messages such as `SBOM is still running`, turn them into a progress bar, or ignore them. Use `start_investigation` and polling when a host does not support progress updates or has short tool-call time limits.
+
 Response:
 
 ```json

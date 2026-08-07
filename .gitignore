@@ -2,6 +2,8 @@
 .savemit-plugin-venv/
 data/validation/
 .agents/
+*.egg-info/
+build/
 __pycache__/
 *.py[cod]
 *.pyo

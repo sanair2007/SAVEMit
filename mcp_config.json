@@ -4,7 +4,8 @@
       "command": "py",
       "args": [
         "-3",
-        "scripts\\run_savemit_mcp.py"
+        "-c",
+        "import runpy; from pathlib import Path; script = Path.home() / '.gemini' / 'config' / 'plugins' / 'savemit-security' / 'scripts' / 'run_savemit_mcp.py'; assert script.is_file(), f'SAVEMit plugin launcher not found: {script}'; runpy.run_path(str(script), run_name='__main__')"
       ]
     }
   }
