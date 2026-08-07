@@ -58,6 +58,8 @@ The repository root is an Antigravity plugin. It carries its own MCP configurati
 
 On first use, expect a short one-time setup while Python creates `.savemit-plugin-venv` and installs the SAVEMit package. The MCP server writes setup diagnostics to stderr, never to the MCP protocol stream.
 
+The bundled Antigravity configuration starts `scripts/run_savemit_mcp.py` relative to the installed plugin root. It intentionally does not use VS Code's `${extensionPath}` placeholder, which Antigravity does not expand.
+
 #### Uninstall Antigravity
 
 ```powershell
